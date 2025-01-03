@@ -1,4 +1,5 @@
 from kalmanfilter import KalmanFilter
+from gradient import gradient
 import cv2, numpy as np
 
 class Detector:
@@ -56,7 +57,6 @@ class Detector:
                     # Get x, y, width and height of the bounding box at index i
                     x,y,w,h = bbox
                     # Use built-in cv2 method to draw the bounding box around the detected object
-                    cv2.rectangle(frame, (x, y), (x+w, y+h), color=(255,255,255), thickness=1)
                     # Make text to display over each box
                     text = "{}:{:.4f}".format(classLabel, classConfidence)
                     # Convert colors into an integer list
@@ -64,9 +64,11 @@ class Detector:
 
                     '''Show Kalman Filter Prediction on Object'''
                     p_x, p_y = kf.predict(x,y)
-                    p_x, p_y = int(p_x[0]), int(p_y[0])
-                    #print(p_x, p_y)
-                    cv2.rectangle(frame, (p_x, p_y), (p_x+w, p_y+h), color=(255,255,255), thickness=1)
+                    p_x, p_y = p_x[0], p_y[0]
+                    # Get gradient of vision and kalman filter based on probability
+                    f_x, f_y = gradient((x,y), (p_x,p_y), classConfidence)
+                    f_x, f_y = int(f_x), int(f_y)
+                    cv2.rectangle(frame, (f_x, f_y), (f_x+w, f_y+h), color=(255,255,255), thickness=1)
 
             '''Proceed to next frame with user input'''
             cv2.imshow("Frame", frame)
